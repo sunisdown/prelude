@@ -33,7 +33,7 @@
 
 ;;; Code:
 
-(prelude-require-package 'anaconda-mode)
+(prelude-require-packages '(anaconda-mode pyenv-mode pyvenv py-yapf))
 
 (when (boundp 'company-backends)
   (prelude-require-package 'company-anaconda)
@@ -41,6 +41,16 @@
 
 (require 'electric)
 (require 'prelude-programming)
+(require 'py-yapf)
+
+(add-to-list 'auto-mode-alist '("\\.py\\'" . python-mode))
+(add-to-list 'interpreter-mode-alist '("python" . python-mode))
+
+;; 使用Cython-mode
+(when (require 'cython-mode nil 'no-error)
+  (add-to-list 'auto-mode-alist '("\\.pyx\\'" . cython-mode))
+  (add-to-list 'auto-mode-alist '("\\.pxd\\'" . cython-mode))
+  (add-to-list 'auto-mode-alist '("\\.pxi\\'" . cython-mode)))
 
 ;; Copy pasted from ruby-mode.el
 (defun prelude-python--encoding-comment-required-p ()
@@ -58,7 +68,7 @@
 
 (defun prelude-python--insert-coding-comment (encoding)
   (let ((newlines (if (looking-at "^\\s *$") "\n" "\n\n")))
-    (insert (format "# coding: %s" encoding) newlines)))
+    (insert (format "# -*- coding: %s -*-" encoding) newlines)))
 
 (defun prelude-python-mode-set-encoding ()
   "Insert a magic comment header with the proper encoding if necessary."
@@ -84,11 +94,26 @@
 (when (fboundp 'exec-path-from-shell-copy-env)
   (exec-path-from-shell-copy-env "PYTHONPATH"))
 
+(defun flycheck-virtualenv-set-python-executables ()
+  "Set Python executables for the current buffer."
+  (let ((exec-path (python-shell-calculate-exec-path)))
+    (setq-local flycheck-python-pylint-executable
+                (executable-find "pylint"))
+    (setq-local flycheck-python-flake8-executable
+                (executable-find "flake8"))))
+
+(defun flycheck-virtualenv-setup ()
+  "Setup Flycheck for the current virtualenv."
+  (when (derived-mode-p 'python-mode)
+    (add-hook 'hack-local-variables-hook
+                            #'flycheck-virtualenv-set-python-executables nil 'local)))
+
 (defun prelude-python-mode-defaults ()
   "Defaults for Python programming."
   (subword-mode +1)
   (anaconda-mode 1)
   (eldoc-mode 1)
+  (local-set-key (kbd "C-c ,") 'anaconda-mode-go-back)
   (setq-local electric-layout-rules
               '((?: . (lambda ()
                         (and (zerop (first (syntax-ppss)))
@@ -102,9 +127,13 @@
   (add-hook 'after-save-hook 'prelude-python-mode-set-encoding nil 'local))
 
 (setq prelude-python-mode-hook 'prelude-python-mode-defaults)
+(add-hook 'flycheck-mode-hook #'flycheck-virtualenv-setup)
 
 (add-hook 'python-mode-hook (lambda ()
                               (run-hooks 'prelude-python-mode-hook)))
+
+;; pep8 格式检测，需要安装 https://github.com/google/yapf
+(add-hook 'python-mode-hook 'py-yapf-enable-on-save)
 
 (provide 'prelude-python)
 
