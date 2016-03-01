@@ -39,6 +39,14 @@
 
 (require 'go-projectile)
 
+;; go 文件自动加载go-mode
+(add-to-list 'auto-mode-alist '("\\.go\\'" . go-mode))
+
+(setq company-tooltip-limit 20)                      ; bigger popup window
+(setq company-idle-delay .3)                         ; decrease delay before autocompletion popup shows
+(setq company-echo-delay 0)                          ; remove annoying blinking
+(setq company-begin-commands '(self-insert-command)) ; start autocompletion only after typing
+
 ;; Ignore go test -c output files
 (add-to-list 'completion-ignored-extensions ".test")
 
@@ -47,8 +55,22 @@
 (eval-after-load 'go-mode
   '(progn
      (defun prelude-go-mode-defaults ()
+        (when (memq window-system '(mac ns x))
+         (dolist (var '("GOPATH" "GO15VENDOREXPERIMENT"))
+           (unless (getenv var)
+             (exec-path-from-shell-copy-env var))))
+       ;; Go orcale
+       (load-file "$GOPATH/src/golang.org/x/tools/cmd/oracle/oracle.el")
+
+       ;; Customize compile command to run go build
+       (if (not (string-match "go" compile-command))
+           (set (make-local-variable 'compile-command)
+                            "go generate && go build -v && go test -v && go vet"))
+
        ;; Add to default go-mode key bindings
        (let ((map go-mode-map))
+         (local-set-key (kbd "M-.") 'godef-jump)
+         (local-set-key (kbd "C-c ,") 'pop-tag-mark)
          (define-key map (kbd "C-c a") 'go-test-current-project) ;; current package, really
          (define-key map (kbd "C-c m") 'go-test-current-file)
          (define-key map (kbd "C-c .") 'go-test-current-test)
