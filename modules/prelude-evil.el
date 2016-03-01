@@ -148,5 +148,8 @@
     "<" 'org-metaleft ; out-dent
     ">" 'org-metaright ; indent
     ))
+;; 去掉 evil 模式下的 M-. 键
+(eval-after-load 'evil-maps
+  '(define-key evil-normal-state-map (kbd "M-.") nil))
 (prelude-evil-key-bindings-for-org)
 (provide 'prelude-evil)
