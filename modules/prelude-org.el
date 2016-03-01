@@ -38,6 +38,11 @@
 (global-set-key "\C-cb" 'org-iswitchb)
 (setq org-log-done t)
 
+(setq org-todo-keywords
+      '((sequence "TODO(t)" "DOING(i)" "|" "DONE(d)")
+        (sequence "REPORT(r)" "BUG(b)" "KNOWNCAUSE(k)" "|" "FIXED(f)")
+                (sequence "|" "CANCELED(c)")))
+
 (defun prelude-org-mode-defaults ()
   (let ((oldmap (cdr (assoc 'prelude-mode minor-mode-map-alist)))
         (newmap (make-sparse-keymap)))
