@@ -42,7 +42,6 @@
 ;; indentation width -- eg. c-basic-offset: use that to adjust your
 ;; personal indentation width, while maintaining the style (and
 ;; meaning) of any files you load.
-(setq-default indent-tabs-mode nil)   ;; don't use tabs to indent
 (setq c-basic-offset 4)
 (setq-default tab-width 2)
 

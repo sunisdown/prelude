@@ -61,6 +61,9 @@
              (exec-path-from-shell-copy-env var))))
        ;; Go orcale
        (load-file "$GOPATH/src/golang.org/x/tools/cmd/oracle/oracle.el")
+       ;; Go tests generate
+       (load-file "$HOME/.emacs.d/elpa/gotests.el")
+
 
        ;; Customize compile command to run go build
        (if (not (string-match "go" compile-command))
